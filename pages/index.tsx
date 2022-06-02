@@ -1,25 +1,70 @@
 import styled from 'styled-components';
+import { useState, ChangeEvent } from 'react';
 import type { NextPage } from 'next';
+import { setDefaultResultOrder } from 'dns';
+import TodoTask from '../components/TodoTask';
+
+export interface ITask {
+  taskName: string;
+  deadline: number;
+}
 
 const Home: NextPage = () => {
+  const [task, setTask] = useState<string>('');
+  const [deadline, setDeadline] = useState<number>(0);
+  const [todoList, setTodoList] = useState<ITask[]>([]);
+
+  const handleChange = (e: ChangeEvent<HTMLInputElement>): void => {
+    if (e.target.name === 'task') {
+      setTask(e.target.value);
+    } else {
+      setDeadline(Number(e.target.value));
+    }
+  };
+
+  const addTask = (): void => {
+    const newTask = {
+      taskName: task,
+      deadline: deadline,
+    };
+    setTodoList([...todoList, newTask]);
+    setTask('');
+    setDeadline(0);
+  };
+
+  const completeTask = (taskNameToDelete: string): void => {
+    setTodoList(todoList.filter(task => task.taskName !== taskNameToDelete));
+  };
+
   return (
     <PageWrapper>
       <Header>
         <HeaderWrapper>
-          <Input type="text" placeholder="Task..." />
-          <Input type="number" placeholder="Deadline ..." />
+          <Input
+            name="task"
+            value={task}
+            type="text"
+            placeholder="Task..."
+            onChange={handleChange}
+          />
+          <Input
+            name="deadline"
+            value={deadline}
+            type="number"
+            placeholder="Deadline ..."
+            onChange={handleChange}
+          />
         </HeaderWrapper>
-        <Button>Add</Button>
+        <Button onClick={addTask}>Add</Button>
       </Header>
-      <Todolist></Todolist>
+      <Todolist>
+        {todoList.map((task: ITask, key) => {
+          return <TodoTask key={key} task={task} completeTask={completeTask} />;
+        })}
+      </Todolist>
     </PageWrapper>
   );
 };
-
-const Title = styled.h1`
-  font-size: 50px;
-  color: ${({ theme }) => theme.colors.primary};
-`;
 
 const PageWrapper = styled.div`
   display: flex;
